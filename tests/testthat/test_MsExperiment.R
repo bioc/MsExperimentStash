@@ -262,7 +262,7 @@ test_that("MetaboLightsParam interactive session works", {
 
 test_that("readMsObject,MsExperiment,MwbParam works", {
     param <- MwbParam(mwbId = "ST002115", analysisId = "AN003513",
-                        filePattern = "01_RP.mzXML")
+                        filePattern = "01_HILIC.mzXML")
 
     with_mocked_bindings(
         ".is_ms_backend_mwb_installed" = function() FALSE,
@@ -282,11 +282,24 @@ test_that("readMsObject,MsExperiment,MwbParam works", {
     ## Test simplify flag removes columns with NAs and duplicated columns
     expect_true(all(colSums(is.na(res@sampleData)) != nrow(res@sampleData)))
     expect_true(any(duplicated(as.list(res@sampleData))) == FALSE)
+
+    ## Test expected warning
+    param <- MwbParam(mwbId = "ST002115", analysisId = "AN003513",
+                        filePattern = "01_RP.mzXML")
+    expect_warning(res_2 <- readMsObject(MsExperiment(), param),
+                    "No match between metadata and spectra files found")
+    expect_is(res_2, "MsExperiment")
+    expect_is(res_2@sampleData, "DataFrame")
+
+    ## Test dataset with single analysis
+    param <- MwbParam(mwbId = "ST001357", filePattern = "124.mzML$")
+    expect_message(res_3 <- readMsObject(MsExperiment(), param),
+                    "Only one analysis found")
 })
 
 test_that("MwbParam interactive session works", {
     ## Testing interactive sesh
-    mock_param <- MwbParam(mwbId = "ST002115", filePattern = "01_RP.mzXML")
+    mock_param <- MwbParam(mwbId = "ST002115", filePattern = "01_HILIC.mzXML")
     menu <- NULL
     with_mocked_bindings(
         menu = function(choices, title = NULL) { 1 },
@@ -294,6 +307,6 @@ test_that("MwbParam interactive session works", {
             result <- readMsObject(MsExperiment(), mock_param)
         }
     )
-    expect_true(nrow(result@sampleData) == 12)
-    expect_true(ncol(result@sampleData) == 17)
+    expect_true(nrow(result@sampleData) == 4)
+    expect_true(ncol(result@sampleData) == 18)
 })

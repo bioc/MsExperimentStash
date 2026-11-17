@@ -480,6 +480,8 @@ setMethod(
 #'
 #' @importFrom jsonlite fromJSON
 #'
+#' @importFrom tools file_path_sans_ext
+#'
 #' @author Gabriele Tomè
 setMethod(
     "readMsObject",
@@ -496,7 +498,11 @@ setMethod(
         assay_data <- fromJSON(
             MsBackendMetabolomicsWorkbench::mwb_rest_request(param@mwbId,
                 outputItem = "analysis"))
-        assay_data <- do.call(rbind.data.frame, assay_data)
+        if ("analysis_id" %in% names(assay_data))
+            assay_data <- data.frame(assay_data)
+        else
+            assay_data <- do.call(rbind.data.frame, assay_data)
+
         if(length(param@analysisId) > 0) {
             selected_analysis <- param@analysisId
             if (!selected_analysis %in% assay_data$analysis_id)
@@ -535,17 +541,24 @@ setMethod(
         object@spectra <- Spectra(mwbId = param@mwbId, source = b,
                                   filePattern = param@filePattern)
         ## sample to spectra link
-        fl <- spectra(object)$file_name[1L]
-
-        ## TODO: check how to merge. In sample info the "raw_data" file name
-        ## does not correspond to the full file name. Neither the pattern can
-        ## match
-        # merged_data <- merged_data[
-        #     grepl(param@filePattern, merged_data$raw_data), , drop = FALSE]
+        files_spectra <- unique(spectra(object)$file_name)
+        idx <- .match_metadata_spectra(merged_data$raw_data,
+                                    file_path_sans_ext(files_spectra))
+        if (!is.null(idx)){
+            merged_data <- merged_data[idx, , drop = FALSE]
+            merged_data$file_name = spectra(object)$file_name[idx]
+        } else {
+            warning("No match between metadata and spectra files found. ",
+                    "Sample data will not be linked to spectra.")
+        }
+        ## In sample info the "raw_data" file name should contain the full file
+        ## name but it is not always true. Neither the pattern can match
         object@sampleData <- DataFrame(merged_data, check.names = FALSE,
                                        row.names = NULL)
-        # w <- paste0("sampleData.", nnme, "= spectra.derived_spectral_data_file")
-        # object <- linkSampleData(object, with = w)
+        if (!is.null(idx)){
+            w <- "sampleData.file_name = spectra.file_name"
+            object <- linkSampleData(object, with = w)
+        }
         validObject(object)
         object
     })

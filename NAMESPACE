@@ -34,6 +34,7 @@ importFrom(methods,
   new,
   validObject
 )
+importFrom(tools,file_path_sans_ext)
 importFrom(utils,
   menu,
   read.table,

@@ -64,4 +64,4 @@ BugReports: https://github.com/RforMassSpectrometry/MsExperimentStash/issues
 URL: https://github.com/RforMassSpectrometry/MsExperimentStash
 biocViews: Infrastructure, MassSpectrometry, Metabolomics, DataImport, Proteomics
 Roxygen: list(markdown=TRUE)
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
