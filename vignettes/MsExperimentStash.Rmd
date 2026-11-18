@@ -296,6 +296,109 @@ sampleData(mse)
 
 We can see that it is much simpler.
 
+# Retrieve MS experiments from Metabolomics Workbench
+
+*Metabolomics Workbench* is another major repository for metabolomics studies
+and experimental data. With `readMsObject()` and a `MwbParam` it is possible to
+retrieve a study from Metabolomics Workbench and load it directly into R as an
+`MsExperiment` object. The study's sample information and metadata are loaded
+into the object's `sampleData()`, while the MS data files are downloaded and
+locally cached through the `r Biocpkg("MsBackendMetabolomicsWorkbench")`
+package. The MS data is then available through the object's `spectra()`.
+
+Below, we demonstrate how to load the study with the ID *ST002115*. We use the
+`analysisId` parameter to specify which analysis we want to load, and the
+`filePattern` parameter to indicate which of the study's raw data files should
+be loaded. Defining the analysis is required for studies that contain more than
+one *analysis*. If `analysisId` is not provided and the study
+contains several analyses, the user is prompted to choose one interactively. The
+`filePattern` allows restricting the download to selected files.
+
+```{r read-mwb}
+library(MsExperiment)
+
+#' Prepare parameter
+param <- MwbParam(mwbId = "ST002115", analysisId = "AN003514",
+                  filePattern = "01_HILIC.mzXML")
+
+#' Load MsExperiment object
+mse <- readMsObject(MsExperiment(), param)
+mse
+```
+
+Next, we examine the `sampleData()` of our `mse` object:
+
+```{r mwb-sampledata}
+sampleData(mse)
+```
+
+The `sampleData()` combines the information on the selected analysis with the
+sample factors defined for the study. Columns that contain only missing values
+(`NA`) or empty strings are automatically removed. The samples are linked to
+the MS data by matching the `raw_data` column in the metadata, that should
+contain the file names, with the names of the downloaded files. Since the
+file names in the metadata are not always complete or consistent with the
+actual file names, it can happen that no match is found. In that case a warning
+is issued and the sample data is not linked to the spectra. In the next section
+is explained how to do the manual linjkage.
+
+The MS data of the experiment was downloaded and cached locally and is
+available through `spectra()`:
+
+```{r mwb-spectra}
+spectra(mse)
+```
+
+## Manual linkage between metadata and spectra files
+
+If the automatic link fails, the sample data and the MS data can be linked
+manually. In this case, the `sampleData()` still contains the complete metadata
+of the selected analysis, but it lacks a `file_name` column and is not linked to
+the `spectra()`. To perform the linkage, we need to carry out three steps:
+
+1. Filter the `sampleData()`, keeping only the rows corresponding to our files.
+2. Add a column (e.g. `file_name`) to the metadata table with the correct file
+   names.
+3. Call `linkSampleData()` to define the link between `sampleData` and
+   `spectra`.
+
+To show how this works, we use the same study, but instead of downloading the
+*HILIC* samples, we download the *reversed-phase* samples. The names of these
+files have the suffix `"_RP"`, which is missing from the metadata column
+`raw_data`.
+
+```{r mwb-manual-link}
+#' Prepare parameter
+param <- MwbParam(mwbId = "ST002115", analysisId = "AN003513",
+                  filePattern = "01_RP.mzXML")
+
+#' Load MsExperiment object
+mse_to_link <- readMsObject(MsExperiment(), param)
+mse_to_link
+
+#' Correct file name
+unique(spectraData(spectra(mse_to_link))$file_name)
+#' File name in `raw_data` column
+sd <- sampleData(mse_to_link)
+sd$raw_data
+
+#' Correct matching index between file name and metadata
+idx <- c("HT1080_DMSO_01_RP.mzXML" = 1,
+         "HT1080_ML162_01_RP.mzXML" = 4,
+         "HT1080_ML210_01_RP.mzXML" = 7,
+         "HT1080_RSL3_01_RP.mzXML" = 10)
+#' Subset the sample data
+sd <- sd[idx, ]
+#' Add the file names
+sd$file_name <- names(idx)
+#' Update `sampleData()`
+sampleData(mse_to_link) <- sd
+#' Link to the spectra
+mse_linked <- linkSampleData(mse_to_link,
+                            with = "sampleData.file_name = spectra.file_name")
+mse_linked
+```
+
 # Session information
 
 ```{r session-info}
