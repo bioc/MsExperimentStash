@@ -265,4 +265,11 @@ test_that(".mtbls_assay_file works", {
     expect_error(.mtbls_assay_file(c("a", "b", "d", "d")), "No assay")
 
     expect_equal(.mtbls_assay_file(c("a_", "b", "c")), "a_")
+
+    with_mocked_bindings(
+        menu = function(choices, title = NULL) { 0 },
+        {
+            expect_error(.mtbls_assay_file(c("a_", "a_", "b")), "Multiple")
+        }
+    )
 })
