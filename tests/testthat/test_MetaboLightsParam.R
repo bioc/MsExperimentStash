@@ -3,6 +3,8 @@ test_that("MetaboLightsParam works", {
     ## Study with only one assay: MTBLS10035
     param <- MetaboLightsParam(mtblsId = "MTBLS39")
     expect_is(param, "MetaboLightsParam")
+
+    expect_error(MetaboLightsParam(), "required")
 })
 
 test_that(".clean_merged function works correctly", {
@@ -41,4 +43,13 @@ test_that(".clean_merged function works correctly", {
     result <- .clean_merged(tbc, keepProtocol = FALSE, keepOntology = FALSE,
                             simplify = TRUE)
     expect_equal(names(result), "Duplicate_F")
+
+    result <- .clean_merged(tbc[, c("Data_E", "Duplicate_F")],
+                            keepOntology = FALSE, keepProtocol = FALSE,
+                            simplify = FALSE)
+    expect_equal(names(result), c("Data_E", "Duplicate_F"))
+    result <- .clean_merged(tbc[, c("Data_E", "Duplicate_F")],
+                            keepOntology = FALSE, keepProtocol = FALSE,
+                            simplify = TRUE)
+    expect_equal(names(result), c("Duplicate_F"))
 })

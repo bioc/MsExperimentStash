@@ -1,6 +1,6 @@
 Package: MsExperimentStash
 Title: Save and restore MsExperiment objects in interoperable file formats
-Version: 0.99.0
+Version: 0.99.1
 Authors@R:
     c(person(given = "Johannes", family = "Rainer",
              email = "Johannes.Rainer@eurac.edu",
@@ -62,4 +62,4 @@ BugReports: https://github.com/RforMassSpectrometry/MsExperimentStash/issues
 URL: https://github.com/RforMassSpectrometry/MsExperimentStash
 biocViews: Infrastructure, MassSpectrometry, Metabolomics, DataImport, Proteomics
 Roxygen: list(markdown=TRUE)
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
