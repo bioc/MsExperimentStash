@@ -115,24 +115,3 @@ MwbParam <- function(mwbId = character(),
     new("MwbParam", mwbId = mwbId, analysisId = analysisId,
         filePattern = filePattern)
 }
-
-#' Function that takes the extra parameters and clean the metadata if asked by
-#' the user.
-#'
-#' @author Gabriele Tomè
-#'
-#' @noRd
-.clean_merged <- function(x, keepProtocol, keepOntology, simplify) {
-    ## remove ontology
-    if (!keepOntology)
-        x <- x[, -which(grepl("Term", names(x))), drop = FALSE]
-    ## remove protocol
-    if (!keepProtocol)
-        x <- x[, -which(grepl("Protocol|Parameter", names(x))),  drop = FALSE]
-    ## remove duplicated columns contents and NAs
-    if (simplify) {
-        x <- x[, !duplicated(as.list(x)), drop = FALSE]
-        x <- x[, colSums(is.na(x)) != nrow(x), drop = FALSE]
-    }
-    x
-}
