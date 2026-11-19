@@ -7,7 +7,7 @@ vignette: >
     %\VignetteIndexEntry{Safely Store MsExperiment Objects in a Portable Stash}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
-    %\VignettePackage{SpectraStash}
+    %\VignettePackage{MsExperimentStash}
     %\VignetteDepends{MsExperiment,Spectra,SpectraStash,BiocStyle,alabaster.base,fs,SummarizedExperiment}
 ---
 
@@ -24,11 +24,12 @@ R-specific binary data format can however not be used easily in other
 programming languages preventing the exchange of R data objects between
 software. The `r Biocpkg("MsStash")` package defines basic classes and generic
 methods to export and import mass spectrometry (MS) data objects in various
-storage formats aiming to facilitate data exchange between software. The *MsExperimentStash* package implements portable data storage formats
-(stashes) for data classes from the `r Biocpkg("MsExperiment")` package,
-including the `MsExperiment` object. Supported stash formats are, next to
-storage in simple plain text files, also Bioconductor's *alabaster* format
-defined in the `r Biocpkg("alabaster.base")` and related packages.
+storage formats aiming to facilitate data exchange between software. The
+*MsExperimentStash* package implements portable data storage formats (stashes)
+for data classes from the `r Biocpkg("MsExperiment")` package, including the
+`MsExperiment` object. Supported stash formats are, next to storage in simple
+plain text files, also Bioconductor's *alabaster* format defined in the `r
+Biocpkg("alabaster.base")` and related packages.
 
 # Installation
 
@@ -52,7 +53,8 @@ formats and their respective parameter objects are:
   `readObject()` functions from *alabaster.base*.
 - `PlainTextParam`: storage of data in (a custom) plain text file format. Note
   that this format currently does not support all data structures potentially
-  present in an `MsExperiment` and hence the alabaster format is preferred.
+  present in an `MsExperiment` and hence the alabaster format is preferred. For
+  examples on this format see the `?MsExperiment` documentation.
 
 See also the vignette from the `r Biocpkg("MsStash")` for details on the formats
 and implementation notes.

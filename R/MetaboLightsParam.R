@@ -130,6 +130,8 @@ setClass("MetaboLightsParam",
 #' @export
 MetaboLightsParam <- function(mtblsId = character(), assayName = character(),
                               filePattern = "mzML$|CDF$|cdf$|mzXML$") {
+    if (length(mtblsId) != 1)
+        stop("Parameter 'mtblsId' is required and has to have the length 1")
     new("MetaboLightsParam", mtblsId = mtblsId, assayName = assayName,
         filePattern = filePattern)
 }
@@ -143,10 +145,10 @@ MetaboLightsParam <- function(mtblsId = character(), assayName = character(),
 .clean_merged <- function(x, keepProtocol, keepOntology, simplify) {
     ## remove ontology
     if (!keepOntology)
-        x <- x[, -which(grepl("Term", names(x))), drop = FALSE]
+        x <- x[, !grepl("Term", names(x)), drop = FALSE]
     ## remove protocol
     if (!keepProtocol)
-        x <- x[, -which(grepl("Protocol|Parameter", names(x))),  drop = FALSE]
+        x <- x[, !grepl("Protocol|Parameter", names(x)),  drop = FALSE]
     ## remove duplicated columns contents and NAs
     if (simplify) {
         x <- x[, !duplicated(as.list(x)), drop = FALSE]

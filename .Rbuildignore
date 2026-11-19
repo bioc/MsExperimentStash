@@ -9,3 +9,4 @@ Makefile
 local_data
 README.Rmd
 logo.png
+^LICENSE\.md$

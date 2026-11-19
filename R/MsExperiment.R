@@ -82,14 +82,13 @@
 #' Serializing `MsExperiment` objects containing a `QFeatures` object is
 #' currently not supported.
 #'
-#' The *plain text file-based* stash is currently not supported.
-#'
 #' @param object A `MsExperiment` object.
 #'
 #' @param param The parameter object to select and configure the stash format.
 #'     Either [MsStash::AlabasterParam] or [MsStash::PlainTextParam].
 #'
-#' @param path For `saveObject()`:
+#' @param path For `saveObject()`: `character(1)` with the path to the folder
+#'     for the stash.
 #'
 #' @param x A `MsExperiment` object.
 #'
@@ -140,6 +139,17 @@
 #' sampleData(res)
 #'
 #' spectra(res)
+#'
+#' ## Save the MsExperiment to a stash in plain text format.
+#' d <- file.path(tempdir(), "ms_experiment_text_stash")
+#' saveMsObject(mse, PlainTextParam(d))
+#'
+#' ## Show the content of the stash folder
+#' dir_tree(d)
+#'
+#' ## Restore the object
+#' res <- readMsObject(MsExperiment(), PlainTextParam(d))
+#' res
 NULL
 
 ################################################################################
@@ -160,6 +170,7 @@ setMethod("saveMsObject", signature(object = "MsExperiment",
                          showWarnings = FALSE)
               .check_overwriting(
                   file.path(param@path, "ms_experiment_sample_data.txt"))
+              .warnings_text_format(object)
               ## sample data
               sdata <- object@sampleData
               if (!length(sdata)) # initialize with empty data frame
@@ -395,25 +406,8 @@ setMethod(
                  "Please install it and try again.", call. = FALSE)
         pth <- MsBackendMetaboLights::mtbls_ftp_path(param@mtblsId)
         all_fls <- MsBackendMetaboLights::mtbls_list_files(param@mtblsId)
-        ## Extract and read assay files
-        assays <- all_fls[grepl("^a_", all_fls)]
-        if (length(param@assayName) > 0) {
-            selected_assay <- param@assayName
-            if (!selected_assay %in% assays)
-                stop("Specified assay \"", selected_assay, "\" does ",
-                     "not exist.", call. = FALSE)
-        } else {
-            if (length(assays) == 1) {
-                selected_assay <- assays
-                message("Only one assay file found: ", selected_assay)
-            } else {
-                message("Multiple assay files found:\n")
-                selection <- menu(
-                    assays, title = paste("Please choose the assay",
-                                          "file you want to use:"))
-                selected_assay <- assays[selection]
-            }
-        }
+        selected_assay <- .mtbls_assay_file(all_fls, param@assayName)
+
         assay_data <- retry(
             read.table(paste0(pth, selected_assay), header = TRUE, sep = "\t",
                        check.names = FALSE, comment.char = "", quote = ""),
@@ -427,7 +421,7 @@ setMethod(
         ## merging
         ord <- match(assay_data$`Sample Name`, sample_info$`Sample Name`)
         merged_data <- cbind(assay_data, sample_info[ord, ])
-        if (keepProtocol || keepOntology || simplify)
+        if (!keepProtocol || !keepOntology || simplify)
             merged_data <- .clean_merged(
                 x = merged_data, keepProtocol = keepProtocol,
                 keepOntology = keepOntology, simplify = simplify)
@@ -436,22 +430,8 @@ setMethod(
         object@spectra <- Spectra(mtblsId = param@mtblsId, source = b,
                                   assayName = selected_assay,
                                   filePattern = param@filePattern)
-        ## sample to spectra link
-        fl <- spectra(object)$derived_spectral_data_file[1L]
-        ## identify the column in the assay/sample description containing
-        ## the file name information.
-        nms <- c("Raw Spectral Data File", "Derived Spectral Data File")
-        nms <- nms[nms %in% colnames(merged_data)]
-        nme <- nms[vapply(nms, function(z)
-            any(merged_data[, z] %in% fl), NA)]
-        merged_data <- merged_data[
-            grepl(param@filePattern, merged_data[, nme]), , drop = FALSE]
-        nnme <- gsub(" ", "_", nme, fixed = TRUE)
-        colnames(merged_data)[colnames(merged_data) == nme] <- nnme
-        object@sampleData <- DataFrame(merged_data, check.names = FALSE,
-                                       row.names = NULL)
-        w <- paste0("sampleData.", nnme, "= spectra.derived_spectral_data_file")
-        object <- linkSampleData(object, with = w)
+        object <- .mtbls_link_spectra(object, merged_data,
+                                      filePattern = param@filePattern)
         validObject(object)
         object
     })
@@ -498,3 +478,51 @@ setMethod(
 }
 
 .RETRY_PATTERN <- "temp|connect"
+
+#' Extract/select a single assay file for a data set.
+#'
+#' @noRd
+.mtbls_assay_file <- function(x, assayName = character()) {
+    assays <- x[grepl("^a_", x)]
+    if (!length(assays))
+        stop("No assay file found", call. = FALSE)
+    if (length(assayName) > 0) {
+        selected_assay <- assayName
+        if (!selected_assay %in% assays)
+            stop("Specified assay \"", selected_assay, "\" does ",
+                 "not exist.", call. = FALSE)
+    } else {
+        if (length(assays) == 1) {
+            selected_assay <- assays
+            message("Only one assay file found: ", selected_assay)
+        } else {
+            message("Multiple assay files found:\n")
+            selection <- menu(
+                assays, title = paste("Please choose the assay",
+                                      "file you want to use:"))
+            if (selection == 0)
+                stop("Multiple assays found. Please specify the assay ",
+                     "with parameter 'assayName' of 'MetaboLightsParam'",
+                     call. = FALSE)
+            selected_assay <- assays[selection]
+        }
+    }
+    selected_assay
+}
+
+.mtbls_link_spectra <- function(x, md, filePattern = "mzML$|CDF$|cdf$|mzXML$") {
+    fl <- spectra(x)$derived_spectral_data_file[1L]
+    ## identify the column in the assay/sample description containing
+    ## the file name information.
+    nms <- c("Raw Spectral Data File", "Derived Spectral Data File")
+    nms <- nms[nms %in% colnames(md)]
+    nme <- nms[vapply(nms, function(z)
+        any(md[, z] %in% fl), NA)]
+    md <- md[grepl(filePattern, md[, nme]), , drop = FALSE]
+    nnme <- gsub(" ", "_", nme, fixed = TRUE)
+    colnames(md)[colnames(md) == nme] <- nnme
+    x@sampleData <- DataFrame(md, check.names = FALSE, row.names = NULL)
+    w <- paste0("sampleData.", nnme, "= spectra.derived_spectral_data_file")
+    x <- linkSampleData(x, with = w)
+    x
+}
