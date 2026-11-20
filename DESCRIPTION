@@ -16,7 +16,7 @@ Authors@R:
              comment = c(ORCID = "0000-0002-1520-2268")),
       person(given = "Gabriele", family = "Tomè",
              email = "gabriele.tome@eurac.edu",
-             role = c("ctb"),
+             role = c("aut"),
              comment = c(ORCID = "0000-0002-3976-6068",
              fnd = "MetaRbolomics4Galaxy project (CUP: D53C25001030003) co-funded by the Autonomous Province of Bolzano under the Joint Projects South Tyrol–Germany 2025 program.")))
 Description: The serialization mechanism of R allows to save and load R data
