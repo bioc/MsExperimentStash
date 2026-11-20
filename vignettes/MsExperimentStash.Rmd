@@ -298,6 +298,11 @@ sampleData(mse)
 
 We can see that it is much simpler.
 
+# License
+
+This vignette is distributed under a [CC BY-SA
+license](https://creativecommons.org/licenses/by-sa/4.0/).
+
 # Session information
 
 ```{r session-info}
