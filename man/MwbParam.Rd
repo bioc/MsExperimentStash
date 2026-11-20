@@ -53,10 +53,7 @@ Metabolomics Workbench.
 
 If the study contains multiple analyses, the user will be prompted to select
 which analysis to load. The resulting \code{MsExperiment} object will include a
-\code{sampleData} slot populated with data extracted from the selected analysis.
-
-The resulting \code{MsExperiment} object will include a \code{sampleData} slot
-populated with data extracted from the Metabolomics Workbench metadata.
+\code{sampleData} slot populated with sample metadata from the selected analysis.
 
 Further filtering can be performed using the \code{filePattern} parameter of the
 \code{MwbParam} object. The default for this parameter is

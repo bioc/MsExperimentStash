@@ -80,9 +80,14 @@
     if(all(vapply(files_spectra,
                     function(x) any(grepl(x, files_mtd)),
                     FUN.VALUE = logical(1)))) {
-        idx <- vapply(files_spectra,
-                        function(x) grep(x, files_mtd),
-                        FUN.VALUE = integer(1))
+        idx <- vapply(files_spectra, function(x){
+                    if(length(i <- grep(x, files_mtd)) > 1){
+                        warning("Multiple match for the file \"", x,
+                                "\". Linking between spectra and samples ",
+                                "needs to be done manually.")
+                        NA_integer_
+                    } else i
+                }, FUN.VALUE = integer(1))
         idx
     } else {
         NULL

@@ -24,12 +24,12 @@ Authors:
 \itemize{
   \item Johannes Rainer \email{Johannes.Rainer@eurac.edu} (\href{https://orcid.org/0000-0002-6977-7147}{ORCID})
   \item Philippine Louail \email{philippine.louail@outlook.com} (\href{https://orcid.org/0009-0007-5429-6846}{ORCID})
+  \item Gabriele Tomè \email{gabriele.tome@eurac.edu} (\href{https://orcid.org/0000-0002-3976-6068}{ORCID}) (fnd: MetaRbolomics4Galaxy project (CUP: D53C25001030003) co-funded by the Autonomous Province of Bolzano under the Joint Projects South Tyrol–Germany 2025 program.)
 }
 
 Other contributors:
 \itemize{
   \item Laurent Gatto \email{laurent.gatto@uclouvain.be} (\href{https://orcid.org/0000-0002-1520-2268}{ORCID}) [contributor]
-  \item Gabriele Tomè \email{gabriele.tome@eurac.edu} (\href{https://orcid.org/0000-0002-3976-6068}{ORCID}) (fnd: MetaRbolomics4Galaxy project (CUP: D53C25001030003) co-funded by the Autonomous Province of Bolzano under the Joint Projects South Tyrol–Germany 2025 program.) [contributor]
 }
 
 }

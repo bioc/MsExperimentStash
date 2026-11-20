@@ -524,7 +524,7 @@ setMethod(
         files_spectra <- unique(spectra(object)$file_name)
         idx <- .match_metadata_spectra(merged_data$raw_data,
                                     file_path_sans_ext(files_spectra))
-        if (!is.null(idx)){
+        if (!is.null(idx) & !anyNA(idx)){
             merged_data <- merged_data[idx, , drop = FALSE]
             merged_data$file_name = spectra(object)$file_name[idx]
         } else {

@@ -301,7 +301,7 @@ test_that("readMsObject,MsExperiment,MwbParam works", {
     param <- MwbParam(mwbId = "ST002115", analysisId = "AN003513",
                         filePattern = "01_RP.mzXML")
     expect_warning(res_2 <- readMsObject(MsExperiment(), param),
-                    "No match between metadata and spectra files found")
+                    "lacks required information")
     expect_is(res_2, "MsExperiment")
     expect_is(res_2@sampleData, "DataFrame")
 
