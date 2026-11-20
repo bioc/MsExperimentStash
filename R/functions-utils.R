@@ -59,3 +59,37 @@
 .is_ms_backend_metabo_lights_installed <- function() {
     requireNamespace("MsBackendMetaboLights", quietly = TRUE)
 }
+
+#' Used in
+#' - *R/MsExperiment.R*: `readMsObject,MsExperiment,MWBParam`
+#'
+#' @noRd
+.is_ms_backend_mwb_installed <- function() {
+    requireNamespace("MsBackendMetabolomicsWorkbench", quietly = TRUE)
+}
+
+#' Try to match the spectra filename with the `raw_data` column in the metadata.
+#'
+#' @param files_mtd `character` with the column `raw_data` of the metadata
+#' @param files_spectra `character` with spectra file names without extension
+#'
+#' @return `integer` with matching index. If match not available return `NULL`.
+#'
+#' @noRd
+.match_metadata_spectra <- function(files_mtd, files_spectra) {
+    if(all(vapply(files_spectra,
+                    function(x) any(grepl(x, files_mtd)),
+                    FUN.VALUE = logical(1)))) {
+        idx <- vapply(files_spectra, function(x){
+                    if(length(i <- grep(x, files_mtd)) > 1){
+                        warning("Multiple match for the file \"", x,
+                                "\". Linking between spectra and samples ",
+                                "needs to be done manually.")
+                        NA_integer_
+                    } else i
+                }, FUN.VALUE = integer(1))
+        idx
+    } else {
+        NULL
+    }
+}

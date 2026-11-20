@@ -75,6 +75,14 @@
 #' from the [MetaboLights](https://www.ebi.ac.uk/metabolights/) repository.
 #' See [MetaboLightsParam] for more information.
 #'
+#' @section Retrieve MS data from *Metabolomics Workbench*:
+#'
+#' In addition to the MsExperimentStash formats for storage of `MsExperiment`
+#' objects, it is possible to load data from a metabolomics study directly
+#' from the [Metabolomics Workbench](https://metabolomicsworkbench.org/)
+#' repository.
+#' See [MwbParam] for more information.
+#'
 #' @note
 #'
 #' Overwriting an existing *MsExperimentStash* is not allowed.
@@ -107,6 +115,8 @@
 #'
 #' @seealso [MetaboLightsParam] for loading an `MsExperiment` from the
 #'     MetaboLights public repository.
+#' @seealso [MwbParam] for loading an `MsExperiment` from the Metabolomics
+#'     Workbench public repository.
 #'
 #' @examples
 #'
@@ -432,6 +442,104 @@ setMethod(
                                   filePattern = param@filePattern)
         object <- .mtbls_link_spectra(object, merged_data,
                                       filePattern = param@filePattern)
+        validObject(object)
+        object
+    })
+
+################################################################################
+##    MetabolomicsWorkbenchParamParam
+################################################################################
+
+#' @rdname MwbParam
+#'
+#' @importFrom utils menu
+#'
+#' @importFrom MsCoreUtils retry
+#'
+#' @importFrom MsExperiment linkSampleData
+#'
+#' @importFrom jsonlite fromJSON
+#'
+#' @importFrom tools file_path_sans_ext
+#'
+#' @author Gabriele Tomè
+setMethod(
+    "readMsObject",
+    signature(object = "MsExperiment", param = "MwbParam"),
+    function(object, param, ...) {
+        ## Instead of importing from MsBackendMetabolomicsWorkbench we are
+        ## only loading here its namespace when this function is called;
+        ## for general stash functionality MsBackendMetabolomicsWorkbench is not
+        ## required and we aim to keep the dependencies low.
+        if (!.is_ms_backend_mwb_installed())
+            stop("Required package 'MsBackendMetabolomicsWorkbench' is ",
+                 "missing. Please install it and try again.", call. = FALSE)
+        ## Extract and read assay files
+        assay_data <- fromJSON(
+            MsBackendMetabolomicsWorkbench::mwb_rest_request(param@mwbId,
+                outputItem = "analysis"))
+        if ("analysis_id" %in% names(assay_data))
+            assay_data <- data.frame(assay_data)
+        else
+            assay_data <- do.call(rbind.data.frame, assay_data)
+
+        if(length(param@analysisId) > 0) {
+            selected_analysis <- param@analysisId
+            if (!selected_analysis %in% assay_data$analysis_id)
+                stop("Specified analysis \"", selected_analysis, "\" does ",
+                     "not exist.", call. = FALSE)
+        } else {
+            if (nrow(assay_data) == 1) {
+                selected_analysis <- assay_data$analysis_id
+                message("Only one analysis found: ", selected_analysis)
+            } else {
+                message("Multiple analysis found:\n")
+                selection <- menu(
+                    assay_data$analysis_id,
+                    title = paste("Please choose the analysis",
+                                  "you want to use:"))
+                selected_analysis <- assay_data$analysis_id[selection]
+            }
+        }
+        assay_data <- assay_data[assay_data$analysis_id == selected_analysis, ]
+
+        ## Extract and read sample info files
+        sample_info <- fromJSON(
+            MsBackendMetabolomicsWorkbench::mwb_rest_request(
+                param@mwbId, outputItem = "factors"))
+        sample_info <- do.call(rbind.data.frame, sample_info)
+        ## merging
+        merged_data <- merge(assay_data, sample_info, by = "study_id")
+        ## Remove columns with all NA values or "" values
+        merged_data <- merged_data[, colSums(is.na(merged_data)) <
+                                        nrow(merged_data)]
+        merged_data <- merged_data[, colSums(merged_data == "", na.rm = TRUE) <
+                                        nrow(merged_data)]
+
+        ## Assemble object
+        b <- MsBackendMetabolomicsWorkbench::MsBackendMetabolomicsWorkbench()
+        object@spectra <- Spectra(mwbId = param@mwbId, source = b,
+                                  filePattern = param@filePattern)
+        ## sample to spectra link
+        files_spectra <- unique(spectra(object)$file_name)
+        idx <- .match_metadata_spectra(merged_data$raw_data,
+                                    file_path_sans_ext(files_spectra))
+        if (!is.null(idx) & !anyNA(idx)){
+            merged_data <- merged_data[idx, , drop = FALSE]
+            merged_data$file_name = spectra(object)$file_name[idx]
+        } else {
+            warning("The experiment lacks required information to match samples
+                    to MS data files. Linking between spectra and samples needs
+                    to be done manually.")
+        }
+        ## In sample info the "raw_data" file name should contain the full file
+        ## name but it is not always true. Neither the pattern can match
+        object@sampleData <- DataFrame(merged_data, check.names = FALSE,
+                                       row.names = NULL)
+        if (!is.null(idx)){
+            w <- "sampleData.file_name = spectra.file_name"
+            object <- linkSampleData(object, with = w)
+        }
         validObject(object)
         object
     })

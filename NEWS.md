@@ -1,5 +1,9 @@
 # *MsExperimentStash* 0.99
 
+## Changes in version 0.99.3
+
+- Add `MwbParam` to support importing an experiment from Metabolomics Workbench.
+
 ## Changes in version 0.99.2
 
 - Fix licensing.
