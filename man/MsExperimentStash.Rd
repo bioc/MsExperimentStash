@@ -33,7 +33,8 @@ such as \code{consolidate}. For \code{readMsObject()}: optional arguments for th
 
 \item{x}{A \code{MsExperiment} object.}
 
-\item{path}{For \code{saveObject()}:}
+\item{path}{For \code{saveObject()}: \code{character(1)} with the path to the folder
+for the stash.}
 }
 \value{
 \code{readMsObject()} and \code{readObject()} return an \code{MsExperiment} object with
@@ -51,8 +52,6 @@ Overwriting an existing \emph{MsExperimentStash} is not allowed.
 
 Serializing \code{MsExperiment} objects containing a \code{QFeatures} object is
 currently not supported.
-
-The \emph{plain text file-based} stash is currently not supported.
 }
 \section{\emph{alabaster}-based format, \code{AlabasterParam}}{
 
@@ -168,6 +167,17 @@ res
 sampleData(res)
 
 spectra(res)
+
+## Save the MsExperiment to a stash in plain text format.
+d <- file.path(tempdir(), "ms_experiment_text_stash")
+saveMsObject(mse, PlainTextParam(d))
+
+## Show the content of the stash folder
+dir_tree(d)
+
+## Restore the object
+res <- readMsObject(MsExperiment(), PlainTextParam(d))
+res
 }
 \seealso{
 \link{MetaboLightsParam} for loading an \code{MsExperiment} from the
