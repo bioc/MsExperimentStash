@@ -528,8 +528,9 @@ setMethod(
             merged_data <- merged_data[idx, , drop = FALSE]
             merged_data$file_name = spectra(object)$file_name[idx]
         } else {
-            warning("No match between metadata and spectra files found. ",
-                    "Sample data will not be linked to spectra.")
+            warning("The experiment lacks required information to match samples
+                    to MS data files. Linking between spectra and samples needs
+                    to be done manually.")
         }
         ## In sample info the "raw_data" file name should contain the full file
         ## name but it is not always true. Neither the pattern can match

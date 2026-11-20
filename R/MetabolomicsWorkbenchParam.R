@@ -18,10 +18,7 @@
 #'
 #' If the study contains multiple analyses, the user will be prompted to select
 #' which analysis to load. The resulting `MsExperiment` object will include a
-#' `sampleData` slot populated with data extracted from the selected analysis.
-#'
-#' The resulting `MsExperiment` object will include a `sampleData` slot
-#' populated with data extracted from the Metabolomics Workbench metadata.
+#' `sampleData` slot populated with sample metadata from the selected analysis.
 #'
 #' Further filtering can be performed using the `filePattern` parameter of the
 #' `MwbParam` object. The default for this parameter is
@@ -112,6 +109,8 @@ setClass("MwbParam",
 MwbParam <- function(mwbId = character(),
                         analysisId = character(),
                         filePattern = "mzML$|CDF$|cdf$|mzXML$") {
+    if (length(mwbId) != 1)
+        stop("Parameter 'mwbId' is required and has to have the length 1")
     new("MwbParam", mwbId = mwbId, analysisId = analysisId,
         filePattern = filePattern)
 }

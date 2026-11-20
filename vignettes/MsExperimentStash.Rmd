@@ -314,7 +314,8 @@ Below, we demonstrate how to load the study with the ID *ST002115*. We use the
 be loaded. Defining the analysis is required for studies that contain more than
 one *analysis*. If `analysisId` is not provided and the study
 contains several analyses, the user is prompted to choose one interactively. The
-`filePattern` allows restricting the download to selected files.
+`filePattern` allows to load only MS data file from the repository with their
+file names matching the provided pattern.
 
 ```{r read-mwb}
 library(MsExperiment)
@@ -341,8 +342,9 @@ the MS data by matching the `raw_data` column in the metadata, that should
 contain the file names, with the names of the downloaded files. Since the
 file names in the metadata are not always complete or consistent with the
 actual file names, it can happen that no match is found. In that case a warning
-is issued and the sample data is not linked to the spectra. In the next section
-is explained how to do the manual linjkage.
+is issued and the sample data is not linked to the spectra. The next section
+explains how to manually link spectra (respectively raw MS data files) to
+samples.
 
 The MS data of the experiment was downloaded and cached locally and is
 available through `spectra()`:
